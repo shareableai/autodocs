@@ -1,0 +1,11 @@
+{
+  "tags": [
+    "classification",
+    "regression",
+    "object-detection",
+    "image-classification",
+    "text-classification",
+    "vision",
+    "text"
+  ]
+}
