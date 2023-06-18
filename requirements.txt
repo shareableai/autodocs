@@ -1,3 +1,5 @@
 openai
 transformers
 tiktoken
+python-dotenv
+langchain
