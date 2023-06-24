@@ -1,10 +1,11 @@
-import autodocs
 import pathlib
 
 from setuptools import setup
 
+import autodocs
+
 LOCAL = pathlib.Path(__file__).parent
-README = ""#(LOCAL / "README.md").read_text()
+README = ""  # (LOCAL / "README.md").read_text()
 
 try:
     requirements = open("requirements.txt", "r").readlines()

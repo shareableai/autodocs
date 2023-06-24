@@ -1,5 +1,5 @@
 from langchain.prompts import StringPromptTemplate
-from pydantic import validator, BaseModel
+from pydantic import BaseModel, validator
 
 from autodocs.prompts.similarity.examples import SimilarityExampleSelector
 
