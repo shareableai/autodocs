@@ -1,0 +1,8 @@
+README.md
+setup.py
+autodocs/__init__.py
+autodocs.egg-info/PKG-INFO
+autodocs.egg-info/SOURCES.txt
+autodocs.egg-info/dependency_links.txt
+autodocs.egg-info/requires.txt
+autodocs.egg-info/top_level.txt
