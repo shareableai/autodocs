@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Optional, Any, List, Dict
+from typing import Any, Dict, List, Optional
 
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.prompts.example_selector import SemanticSimilarityExampleSelector

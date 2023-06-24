@@ -1,22 +1,25 @@
 from __future__ import annotations
 
-
-from dotenv import load_dotenv
-load_dotenv("/Users/edenhyacinth/autodocs/.env")
-
 import json
+import logging
 import pathlib
+from pydoc import doc
 import uuid
 from dataclasses import dataclass
 from typing import Any, Optional
 
 from autodocs.document.doc import OutputDocumentation
+from autodocs.pipeline.model import ChatModel
 from autodocs.prompts.called_fn_summarisation.run import CalledFnSummarisationQA
+from autodocs.prompts.component_identifier.run import ComponentIdentifierQA
 from autodocs.prompts.condenser.run import CondenserQA
 from autodocs.prompts.hyperparameters.run import HyperparameterQA
 from autodocs.prompts.usefulness.run import ImportanceQA
 from autodocs.utils.function_description import FunctionDescription
 from autodocs.utils.slugify import slugify
+
+LOGGER = logging.getLogger(__name__)
+logging.basicConfig(level="INFO")
 
 
 def root_path() -> pathlib.Path:
@@ -51,17 +54,20 @@ class Trace:
         try:
             with open(self.root_dir / slugify(function_name)) as f:
                 function_info = json.load(f)
-                arguments: dict[str, str] = function_info["arguments"]
-                source: str = function_info["source"]
-                docs: str = function_info["caller_docs"]
-                signature: Optional[str] = function_info["signature"]
-                if source is not None and source != "None":
-                    return FunctionDescription(function_name, source, docs, arguments, signature)
+                arguments: dict[str, str] = function_info.get("arguments", {})
+                source: str = function_info.get("source", "")
+                docs: str = function_info.get("caller_docs", "")
+                caller_name: str = function_info.get("caller_name", "")
+                signature: Optional[str] = function_info.get("signature", None)
+                tracked_class_name: Optional[str] = function_info.get("tracked_class_name", None)
+                return FunctionDescription(
+                    function_name, source, docs, arguments, signature, self.root_dir, caller_name, tracked_class_name
+                )
         except FileNotFoundError:
-            return FunctionDescription(function_name, "", "", {})
+            return FunctionDescription(function_name, "", "", {}, None, self.root_dir, None, None)
 
     def _load_important_function_calls(self) -> list[str]:
-        return ImportanceQA()(self.trace)
+        return ImportanceQA(model=ChatModel.model())(self.trace)
 
     def _retrieve_function_descriptions(
         self, important_functions: list[str]
@@ -73,46 +79,64 @@ class Trace:
 
     @staticmethod
     def _summarise_functions_with_arguments(
-        function_descriptions: list[FunctionDescription]
+        function_descriptions: list[FunctionDescription],
     ) -> list[tuple[FunctionDescription, str]]:
         return list(
-            CalledFnSummarisationQA()(functions=function_descriptions)
+            CalledFnSummarisationQA(model=ChatModel.model())(
+                functions=function_descriptions
+            )
         )
 
     def _condense_descriptions(
         self, function_summaries: list[tuple[FunctionDescription, str]]
     ) -> str:
-        return CondenserQA()(
+        return CondenserQA(model=ChatModel.model())(
             functions=function_summaries,
             trace=self.trace_fns,
             trace_type=self.trace_type,
         )
 
-    def _retrieve_hyperparameters(
+    def _find_components(
+        self, function_summaries: list[tuple[FunctionDescription, str]]
+    ) -> str:
+        return ComponentIdentifierQA(model=ChatModel.model())(
+            functions=function_summaries,
+            trace_type=self.trace_type,
+        )
+
+    def _find_hyperparameters(
         self, function_summaries: list[tuple[FunctionDescription, str]]
     ) -> list[tuple[FunctionDescription, dict[str, Any]]]:
-        return list(HyperparameterQA()(function_summaries))
+        return list(HyperparameterQA(model=ChatModel.model())(function_summaries))
 
-    def create_description(self) -> str:
+    def _function_summaries(self) -> list[tuple[FunctionDescription, str]]:
         # Identify usefulness of each component within the trace
         important_functions = self._load_important_function_calls()
-        print(f"{important_functions=}")
+        LOGGER.info(
+            "Identified useful functions as; %s", ", ".join(important_functions)
+        )
         # Retrieve Source info for each of the important functions from the dump
         function_descriptions = self._retrieve_function_descriptions(
             important_functions
         )
+        LOGGER.info("Retrieved Function info from observer")
         # Summarise the Function Source Info
         function_summaries = self._summarise_functions_with_arguments(
             function_descriptions
         )
-        print(f"Fn Summaries: {[summary for (_, summary) in function_summaries]}")
-        # Identify hyperparameters within the functions, based on the descriptions of the functions.
+        LOGGER.info(
+            "Generated Function Summaries for %s functions", len(function_summaries)
+        )
+        return function_summaries
+
+    def create_description(self) -> tuple[str, dict[str, Any]]:
+        function_summaries = self._function_summaries()
         #   TODO - Extend this using saved items - frequently it's not possible to identify the objects referred to because
         #       they existed on an object, not on the function. Having a saved item via Jackdaw would make this accessible again.
-        hyperparameters = self._retrieve_hyperparameters(function_summaries)
-        print(f"Hyperparameters: {[hp for (_, hp) in hyperparameters]}")
-        condensed = self._condense_descriptions(function_summaries)
-        breakpoint()
+        # Identify hyperparameters within the functions, based on the descriptions of the functions.
+        hyperparameters = self._find_hyperparameters(function_summaries)
+        components = self._find_components(function_summaries)
+        return components, hyperparameters
 
 
 def load_library_versions(observation_id: uuid.UUID) -> dict[str, str]:
@@ -125,34 +149,37 @@ def load_library_versions(observation_id: uuid.UUID) -> dict[str, str]:
 
 def create_output_document(observation_id: uuid.UUID) -> OutputDocumentation:
     try:
-        processing_description = Trace.from_id(
+        processing_description, processing_hyperparams = Trace.from_id(
             observation_id, "Processing"
         ).create_description()
     except NoSuchTrace:
+        processing_hyperparams = {}
         processing_description = None
     try:
-        training_description = Trace.from_id(
+        training_description, training_hyperparams = Trace.from_id(
             observation_id, "Training"
         ).create_description()
     except NoSuchTrace:
+        training_hyperparams = {}
         training_description = None
     try:
-        inference_description = Trace.from_id(
+        inference_description, inference_hyperparams = Trace.from_id(
             observation_id, "Inference"
         ).create_description()
     except NoSuchTrace:
+        inference_hyperparams = {}
         inference_description = None
-
+    breakpoint()
     return OutputDocumentation(
         preprocessing_steps=processing_description,
         training_steps=training_description,
         inference_steps=inference_description,
+        parameters = processing_hyperparams | training_hyperparams | inference_hyperparams,
         total_libraries=load_library_versions(observation_id),
     )
 
 
 if __name__ == "__main__":
-    inference_trace = Trace.from_id(
-        uuid.UUID("a171d4c6-ba7d-4594-8b98-54f8e41a1229"), trace_type="Inference"
-    )
-    print(inference_trace.create_description().steps())
+    document = create_output_document("04d024f0-22c2-4433-8dfe-6c024a245737")
+    print(document.steps())
+    print(document.parameters)

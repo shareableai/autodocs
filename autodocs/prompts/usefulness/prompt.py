@@ -1,5 +1,5 @@
 from langchain.prompts import StringPromptTemplate
-from pydantic import validator, BaseModel
+from pydantic import BaseModel, validator
 
 
 def format_response(response: str) -> list[tuple[str, float]]:

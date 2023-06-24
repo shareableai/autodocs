@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-
 from typing import *
 
 
@@ -15,7 +14,7 @@ class OutputDocumentation:
 
     def steps(self) -> dict[str, str]:
         return {
-            'preprocessing': self.preprocessing_steps,
-            'training': self.training_steps,
-            'inference': self.inference_steps,
+            "preprocessing": self.preprocessing_steps,
+            "training": self.training_steps,
+            "inference": self.inference_steps,
         }

@@ -3,10 +3,9 @@ import json
 import numpy as np
 from langchain import LLMChain
 from langchain.chat_models import ChatOpenAI
-
-from autodocs.prompts.similarity.prompt import OutputSimilarityPromptTemplate
 from sklearn.metrics import mean_squared_error
 
+from autodocs.prompts.similarity.prompt import OutputSimilarityPromptTemplate
 from autodocs.prompts.similarity.utils import format_response
 
 
@@ -41,7 +40,7 @@ def evaluate_similarity(prompt: OutputSimilarityPromptTemplate) -> float:
 def modify_rules(
     prompt: OutputSimilarityPromptTemplate,
 ) -> OutputSimilarityPromptTemplate:
-    from langchain import PromptTemplate, OpenAI, LLMChain
+    from langchain import LLMChain, OpenAI, PromptTemplate
 
     prompt_template = """
 Generate a variation of the following instruction while keeping the semantic meaning.

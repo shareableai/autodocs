@@ -1,83 +1,25 @@
-from langchain.prompts import StringPromptTemplate
-from pydantic import validator, BaseModel
-
-from autodocs.utils.function_description import FunctionDescription
-
-# TODO: Use a Condense/Refine framework from LLMs to restrict the output into a single paragraph describing the step of actions performed.
-
-class CondenserPromptTemplate(StringPromptTemplate, BaseModel):
-    _prompt = """
+CondenserPrompt = """
 You are a Data Scientist describing the transformations that are applied to input data by a machine learning
 model during the {trace_type} stage.
 
-Given the following function descriptions, describe each transformation that happens to the input data, keeping a 
+Given the following ordered function descriptions, describe each transformation that happens to the input data, keeping a 
 focus on the input data at each step. 
 
-{examples}
+{text}
 
-# Functions
-{functions}
-
-# Steps
+Steps:
 """
 
-    _example_prompt = """
-    ## Function
-    {functions}
+CondenserRefinerPrompt = """
+You are a Data Scientist describing the transformations that are applied to input data by a machine learning
+model during the {trace_type} stage.
 
-    ## Steps
-    {steps}
-    ===
-    """
+We have provided an existing set of steps up to a certain point: {existing_answer}
 
-    @validator("input_variables")
-    def validate_input_variables(cls, v):
-        """Validate that the input variables are correct."""
-        if (
-            len(v) != 3
-            or "functions" not in v
-            or "trace" not in v
-            or "trace_type" not in v
-        ):
-            raise ValueError("functions and trace must be provided")
-        return v
+We have the opportunity to refine the existing summary (only if needed) with some more context below.
 
-    @staticmethod
-    def format_functions(
-        functions: dict[str, tuple[FunctionDescription, str]], trace: list[str]
-    ) -> str:
-        prompt = ""
-        for idx, function_name in enumerate(trace):
-            if function_name not in functions:
-                prompt = f"{prompt}\n{idx}. {function_name}"
-            else:
-                fn_desc, summary = functions[function_name]
-                prompt = f"{prompt}\n{idx}. {function_name}: {summary}"
+{text}
 
-        return prompt
-
-    def format(
-        self,
-        functions: list[tuple[FunctionDescription, str]],
-        trace: list[str],
-        trace_type: str,
-    ) -> str:
-        """examples = CondenserExampleSelector.examples(functions, trace)
-        formatted_examples = [
-            self._example_prompt.format(
-                function=example["functions"],
-                summary=example["steps"],
-            )
-            for example in examples
-        ]"""
-        prompt = self._prompt.format(
-            functions=self.format_functions(
-                {fn.name: (fn, summary) for (fn, summary) in functions}, trace
-            ),
-            trace_type=trace_type.lower(),
-            examples="",
-        )
-        return prompt
-
-    def _prompt_type(self) -> str:
-        return "condense_summaries"
+Given the new context, refine the original summary. 
+If the new context isn't useful, return the original summary.
+"""
