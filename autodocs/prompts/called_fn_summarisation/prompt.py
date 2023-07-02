@@ -1,5 +1,5 @@
 CalledFunctionQuestionPrompt = """
-You are a Data Scientist summarising function code for a technical colleague. 
+Your task is to write a condensed technical description of a function.
 
 Using the Function Source and Function Arguments, write a description of what the function does, focusing on components that help explain the transformations the model applies to the input data. 
 

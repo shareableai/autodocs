@@ -10,7 +10,8 @@ class ImportanceQA:
         self.model = model
         self.prompt = TraceImportancePrompt(input_variables=["trace"])
         self.importance_qa = LLMChain(llm=self.model, prompt=self.prompt)
-
+    
+    # TODO: Use MoE here to reduce inconsistency in replies?
     def __call__(self, trace: list[str]) -> list[str]:
         raw_response = self.importance_qa.run("\n".join(trace))
         formatted_response = format_response(raw_response)

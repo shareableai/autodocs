@@ -43,18 +43,35 @@ class ComponentIdentifierQA:
                 for (function, desc) in functions
             ]
         )
+    
+    def _format_response(self, response: str) -> dict[str, str]:
+        components: dict[str,str] = {}
+        for line in response.split('\n'):
+            if len(line.strip()) == 0:
+                continue
+            if ':' not in line:
+                LOGGER.warn("Expected delimiter in %s - found none", line)
+                continue
+            component_name, component_description = line.split(':')
+            component_name = component_name.removeprefix('(').removesuffix(')')
+            components[component_name] = component_description
+        return components
+
 
     def __call__(
         self, functions: list[tuple[FunctionDescription, str]], trace_type: str
-    ) -> Iterator[tuple[FunctionDescription, str]]:
+    ) -> dict[str, str]:
         split_arguments = self._split_source(functions)
         LOGGER.info(
             "Identifying Components using %s requests.",
             len(split_arguments),
         )
         try:
-            return self.component_summarise_chain(
+            output_text = self.component_summarise_chain(
                 {"input_documents": split_arguments, "trace_type": trace_type}
             )['output_text']
-        except InvalidRequestError:
             breakpoint()
+            return self._format_response(output_text)
+        except InvalidRequestError as e:
+            LOGGER.error("Invalid Request - %s", str(e))
+            raise e

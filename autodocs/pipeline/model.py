@@ -15,7 +15,7 @@ class ChatModel:
     @staticmethod
     def load_model() -> BaseChatModel:
         return ChatOpenAI(
-            model_name=os.environ.get("LLM_BASE_MODEL_NAME", "gpt-3.5-turbo")
+            model_name=os.environ.get("LLM_BASE_MODEL_NAME", "gpt-3.5-turbo-0613")
         )
 
     @classmethod

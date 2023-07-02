@@ -1,9 +1,9 @@
 from __future__ import annotations
+from functools import reduce
 
 import json
 import logging
 import pathlib
-from pydoc import doc
 import uuid
 from dataclasses import dataclass
 from typing import Any, Optional
@@ -51,20 +51,7 @@ class Trace:
         return Trace(directory, trace, trace_fns, trace_type)
 
     def load_function_info(self, function_name: str) -> FunctionDescription:
-        try:
-            with open(self.root_dir / slugify(function_name)) as f:
-                function_info = json.load(f)
-                arguments: dict[str, str] = function_info.get("arguments", {})
-                source: str = function_info.get("source", "")
-                docs: str = function_info.get("caller_docs", "")
-                caller_name: str = function_info.get("caller_name", "")
-                signature: Optional[str] = function_info.get("signature", None)
-                tracked_class_name: Optional[str] = function_info.get("tracked_class_name", None)
-                return FunctionDescription(
-                    function_name, source, docs, arguments, signature, self.root_dir, caller_name, tracked_class_name
-                )
-        except FileNotFoundError:
-            return FunctionDescription(function_name, "", "", {}, None, self.root_dir, None, None)
+        return FunctionDescription.from_file(self.root_dir, function_name)
 
     def _load_important_function_calls(self) -> list[str]:
         return ImportanceQA(model=ChatModel.model())(self.trace)
@@ -98,7 +85,7 @@ class Trace:
 
     def _find_components(
         self, function_summaries: list[tuple[FunctionDescription, str]]
-    ) -> str:
+    ) -> dict[str, str]:
         return ComponentIdentifierQA(model=ChatModel.model())(
             functions=function_summaries,
             trace_type=self.trace_type,
@@ -106,7 +93,7 @@ class Trace:
 
     def _find_hyperparameters(
         self, function_summaries: list[tuple[FunctionDescription, str]]
-    ) -> list[tuple[FunctionDescription, dict[str, Any]]]:
+    ) -> list[dict[str, Any]]:
         return list(HyperparameterQA(model=ChatModel.model())(function_summaries))
 
     def _function_summaries(self) -> list[tuple[FunctionDescription, str]]:
@@ -129,13 +116,11 @@ class Trace:
         )
         return function_summaries
 
-    def create_description(self) -> tuple[str, dict[str, Any]]:
+    def create_description(self) -> tuple[dict[str, str], dict[str, Any]]:
         function_summaries = self._function_summaries()
-        #   TODO - Extend this using saved items - frequently it's not possible to identify the objects referred to because
-        #       they existed on an object, not on the function. Having a saved item via Jackdaw would make this accessible again.
-        # Identify hyperparameters within the functions, based on the descriptions of the functions.
-        hyperparameters = self._find_hyperparameters(function_summaries)
+        hyperparameters = reduce(lambda a, b: a | b, self._find_hyperparameters(function_summaries), {})
         components = self._find_components(function_summaries)
+        LOGGER.info("Components: [%s]", ', '.join(components.keys()))
         return components, hyperparameters
 
 
@@ -154,32 +139,34 @@ def create_output_document(observation_id: uuid.UUID) -> OutputDocumentation:
         ).create_description()
     except NoSuchTrace:
         processing_hyperparams = {}
-        processing_description = None
+        processing_description = {}
     try:
         training_description, training_hyperparams = Trace.from_id(
             observation_id, "Training"
         ).create_description()
     except NoSuchTrace:
         training_hyperparams = {}
-        training_description = None
+        training_description = {}
     try:
         inference_description, inference_hyperparams = Trace.from_id(
             observation_id, "Inference"
         ).create_description()
     except NoSuchTrace:
         inference_hyperparams = {}
-        inference_description = None
-    breakpoint()
+        inference_description = {}
     return OutputDocumentation(
         preprocessing_steps=processing_description,
         training_steps=training_description,
         inference_steps=inference_description,
-        parameters = processing_hyperparams | training_hyperparams | inference_hyperparams,
+        preprocessing_hyperparams=processing_hyperparams,
+        training_hyperparams = training_hyperparams,
+        inference_hyperparams=inference_hyperparams,
         total_libraries=load_library_versions(observation_id),
     )
 
 
 if __name__ == "__main__":
-    document = create_output_document("04d024f0-22c2-4433-8dfe-6c024a245737")
-    print(document.steps())
-    print(document.parameters)
+    output_dir = pathlib.Path.cwd() / 'output_example'
+    output_dir.mkdir(exist_ok=True)
+    document = create_output_document("cf56f7f5-6567-4db2-8999-34dfad25d071")
+    document.to_html(output_dir)

@@ -24,7 +24,7 @@ of the model. Ignore validation functions.
 Return up to the top 5 most important function calls, with a rating from 0.0 to 1.0 indicating how important it is that 
 you learn more about that function to understand the model. 
 A rating of 0 indicates it is unlikely to teach you something about how the model works. A rating of 1 indicates it is 
-essential to understanding the model. A rating of 0.5 indicates you can likely guess what the function.
+essential to understanding the model. A rating of 0.5 indicates you can likely guess the contents of the function from its name alone.
 
 ## Functions Executed
 [0]     model_lib.__main__
