@@ -5,10 +5,8 @@ from typing import Any, Iterator
 from langchain import LLMChain
 from langchain.chat_models import ChatOpenAI
 from langchain.chat_models.base import BaseChatModel
-from autodocs.pipeline.model import ChatModel
 
 from autodocs.prompts.hyperparameters.prompt import HyperparameterFinderPromptTemplate
-from autodocs.utils.slugify import slugify
 from autodocs.utils.function_description import FunctionDescription
 
 response_re = re.compile(r"[0-9]{1,}\.\s([^\s]+)\s\[([^:]+)\]:\s(.*)")
@@ -43,13 +41,11 @@ class HyperparameterQA:
                     LOGGER.error(
                         "Failed to convert %s into hyperparameter format", line
                     )
-                    breakpoint()
                 (argument_name, argument_location, justification) = (
                     grouped_response.group(1),
                     grouped_response.group(2),
                     grouped_response.group(3),
                 )
-                argument_name = argument_name.replace("`", "")
                 argument_locations.append(argument_location)
         for argument_location in argument_locations:
             if "local" in argument_location:
@@ -70,11 +66,3 @@ class HyperparameterQA:
                 function_description=function_description,
             )
             yield self._format_response(hyperparameter_response, function)
-
-
-if __name__ == "__main__":
-    import pathlib
-    description = " Performs the forward pass of a model for object detection. It takes several arguments including pixel_values, pixel_mask, decoder_attention_mask, encoder_outputs, inputs_embeds, decoder_inputs_embeds, labels, output_attentions, output_hidden_states, and return_dict. The pixel_values are passed through a base model consisting of convolutional and batch normalization layers to obtain encoder and decoder outputs. The encoder outputs are further processed using self-attention mechanisms. The model applies a classifier to the sequence_output to obtain class logits and predicted bounding boxes. If labels are provided, it creates a matcher and a criterion, and computes losses based on the outputs and labels using smooth L1 loss for bounding box regression and cross-entropy loss for classification. The function returns the loss, loss_dict, logits, pred_boxes, auxiliary_outputs, and various hidden states and attentions depending on the return_dict parameter. "
-    fn_desc = FunctionDescription.from_file(pathlib.Path.home() / '.stack_traces' / 'cf56f7f5-6567-4db2-8999-34dfad25d071' / 'TrackingType.Inference', slugify('transformers.models.detr.modeling_detr.forward'))
-    descs = HyperparameterQA(ChatModel.model())([(fn_desc, description)])
-    print(list(descs))

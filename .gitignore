@@ -2,3 +2,10 @@
 **/.chroma/*
 **/__pycache__/*
 .idea/*
+**/lightning_logs/*
+/build/**
+**.egg-info
+*.egg-info
+poetry.lock
+.env
+autodocs.egg-info/**/*

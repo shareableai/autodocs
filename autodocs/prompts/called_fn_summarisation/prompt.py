@@ -1,3 +1,10 @@
+CalledFunctionParameterPrompt = """
+Your task is to write a condensed technical description of a function, focusing on the parameters provided to the function. For each parameter, provide an
+explanation of the impact that parameter has on the function.
+
+{text}
+"""
+
 CalledFunctionQuestionPrompt = """
 Your task is to write a condensed technical description of a function.
 

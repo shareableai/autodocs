@@ -3,7 +3,7 @@ from typing import Optional
 
 from dotenv import load_dotenv
 
-load_dotenv("/Users/edenhyacinth/autodocs/.env")
+load_dotenv("D:\ShareableAI/autodocs/.env")
 
 from langchain.chat_models import ChatOpenAI
 from langchain.chat_models.base import BaseChatModel

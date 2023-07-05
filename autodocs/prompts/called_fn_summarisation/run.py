@@ -10,7 +10,7 @@ from openai import InvalidRequestError
 
 from autodocs.prompts.called_fn_summarisation.prompt import (
     CalledFunctionQuestionPrompt,
-    CalledFunctionRefinePrompt,
+    CalledFunctionRefinePrompt, CalledFunctionParameterPrompt,
 )
 from autodocs.utils.function_description import FunctionDescription
 
@@ -18,10 +18,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 class CalledFnSummarisationQA:
-    def __init__(self, model: BaseChatModel = ChatOpenAI(model_name="gpt-3.5-turbo")):
+    def __init__(self, model: BaseChatModel = ChatOpenAI(model_name="gpt-3.5-turbo"), include_arguments: bool = True):
         self.model = model
+        self.include_arguments = include_arguments
         self.question_prompt = PromptTemplate(
-            template=CalledFunctionQuestionPrompt, input_variables=["text"]
+            template=CalledFunctionParameterPrompt, input_variables=["text"]
         )
         self.refine_prompt = PromptTemplate(
             template=CalledFunctionRefinePrompt,
@@ -39,15 +40,18 @@ class CalledFnSummarisationQA:
         self, function_source: str, function_arguments: dict[str, str]
     ) -> Any:
         splitter = TokenTextSplitter(chunk_size=3_000, chunk_overlap=250)
+        if self.include_arguments:
+            arguments = "\n\n" + ", ".join(
+                [
+                    "Function Arguments: \n" + arg_name + " = " + arg
+                    for (arg_name, arg) in function_arguments.items()
+                ]
+            )
+        else:
+            arguments = ""
         return splitter.create_documents(
             [
-                "Function Source: " + "\n" + f"{function_source}" + "\n\n"
-                ", ".join(
-                    [
-                        "Function Arguments: \n" + arg_name + " = " + arg
-                        for (arg_name, arg) in function_arguments.items()
-                    ]
-                )
+                "Function Source: " + "\n" + f"{function_source}" + arguments
             ]
         )
 

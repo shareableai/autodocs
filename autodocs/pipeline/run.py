@@ -41,7 +41,7 @@ class Trace:
     def from_id(trace_id: uuid.UUID, trace_type: str) -> Trace:
         directory = root_path() / str(trace_id) / f"TrackingType.{trace_type}"
         if not directory.exists():
-            raise NoSuchTrace(f"Could not find {trace_id}")
+            raise NoSuchTrace(f"Could not find {trace_id} with Trace Type {trace_type}")
         with open(directory / "trace.txt") as f:
             trace = f.readlines()
             trace_fns = [
