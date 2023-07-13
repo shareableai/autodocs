@@ -1,5 +1,7 @@
 from typing import TypeVar, Iterable
-T = TypeVar('T')
+
+T = TypeVar("T")
+
 
 def skip(item: Iterable[T], n: int) -> Iterable[T]:
     idx = 0

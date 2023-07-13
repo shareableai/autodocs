@@ -9,3 +9,5 @@
 poetry.lock
 .env
 autodocs.egg-info/**/*
+.pytest_cache/*
+.vscode/*

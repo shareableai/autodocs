@@ -9,117 +9,312 @@
 </head>
 
 <style>
+    body {
+        font-family: 'Roboto', Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Set basic page layout */
+    .container {
+        display: flex;
+        min-height: 100vh; /* Ensure the container fills the entire viewport */
+        overflow: hidden; /* Hide any overflowing content */
+        margin-right: 40px;
+    }
+
     .sidebar {
-        margin-top: 0px;
-        margin: 0;
-        padding: 0;
-        width: 200px;
-        background-color: #f1f1f1;
-        position: fixed;
-        height: 100%;
-        overflow: auto;
+        width: 300px;
+        background-color: #f2f2f2;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        flex-shrink: 0; /* Prevent sidebar from shrinking */
+        overflow-y: auto; /* Add vertical scrolling */
     }
 
-    /* Sidebar links */
-    .sidebar a {
-        display: block;
-        color: black;
-        padding: 16px;
-        text-decoration: none;
+    /* Add styling to make it visually appealing */
+    .container {
+      min-height: 100vh;
     }
 
-    /* Active/current link */
-    .sidebar a.active {
-        background-color: #04AA6D;
-        color: white;
-    }
-
-    /* Links on mouse-over */
-    .sidebar a:hover:not(.active) {
-        background-color: #555;
-        color: white;
+    .sidebar {
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-right: 10px; /* Add right margin */
+        background-color: #f9f8f8; /* Light gray  */
+        border: 1px solid #edeae9;
     }
 
     /* Page content. The value of the margin-left property should match the value of the sidebar's width property */
     div.content {
-        margin-left: 200px;
-        padding: 1px 16px;
-        height: 1000px;
+        margin-top: 25px;
+        margin-left: 150px;
+        margin-right: 150px;
+        padding: 1px 100px;
+        height: 100%;
     }
 
-    .topbar {
-        background-color: #333;
-        overflow: hidden;
+    a {
+      text-decoration: none;
     }
 
-    .model_name {
-        float: left;
-        color: #f2f2f2;
-        text-align: center;
-        padding: 14px 16px;
+
+    /* Format the navigation bar */
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: #f5f3f3; /* Deep blue */
+        border: 1px solid #edeae9;
+    }
+
+    .navbar-title {
+      font-size: 18px;
+      color: #fff; /* White */
+    }
+
+    .navbar-container {
+        background-color: #ff7a70;
+        display: flex;
+        padding-right: 4px;
+        padding-left: 4px;
+        border-radius: 10px;
+    }
+
+    .navbar-sections {
+      display: flex;
+    }
+
+    .navbar-section a {
+        color: #1e1f21; /* Replace with your desired text color */
         text-decoration: none;
-        font-size: 17px;
+        font-family: Arial, sans-serif;
+        font-size: 18px;
+        padding: 5px 10px;
+        margin-left: 5px;
+        margin-right: 5px;
+        border-radius: 5px;
+        background-color: #ddd; /* Replace with your desired background color */
     }
 
-    .topbar a {
-        float: right;
-        color: #f2f2f2;
-        text-align: center;
-        padding: 14px 16px;
-        text-decoration: none;
-        font-size: 17px;
+    .navbar-section a:hover {
+      background-color: #bbb; /* Replace with your desired hover background color */
     }
 
-    .topbar a:hover {
-        background-color: #ddd;
-        color: black;
+    .sidebar-sections {
+        display: flex
     }
 
-    .topbar a.active {
-        background-color: #04AA6D;
-        color: white;
+    .sidebar-section {
+        color: white; /* Dark gray */
+        border-radius: 10px;
+        transition: background-color 0.3s;
     }
+
+    .sidebar-text {
+        font-size: 18px;
+        margin-left: 20px;
+    }
+
+    .sidebar-section a {
+      color: #000000;
+      text-decoration: none;
+    }
+
+    .sidebar-section:hover {
+      background-color: #dddddd;
+    }
+
+    body {
+      line-height: 2.0; /* Increase or decrease this value as needed */
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      margin-bottom: 10px; /* Adjust this value to increase or decrease space */
+    }
+
+    /* Table Styles */
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          font-family: Arial, sans-serif;
+        }
+
+        th,
+        td {
+          padding: 8px;
+          text-align: left;
+          border-bottom: 1px solid #ddd;
+        }
+
+        th {
+          background-color: #f2f2f2;
+        }
+
+        tr:hover {
+          background-color: #f5f5f5;
+        }
+
+        /* Optional: Add additional styling for specific elements */
+        /* For example, you can add a class to the table element and target it here */
+
+        .table-container {
+          box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1);
+          border-radius: 4px;
+          overflow: hidden;
+        }
+
+        .table-container table {
+          border: 1px solid #ddd;
+        }
+
+        .table-container th,
+        .table-container td {
+          border-bottom: none;
+        }
+
+        /* Style the summary section */
+        .summary {
+          margin-bottom: 20px;
+        }
+
+        .summary h2 {
+          font-size: 24px;
+          color: #333;
+          margin-bottom: 10px;
+        }
+
+        .summary p {
+          font-size: 16px;
+          color: #666;
+          line-height: 1.5;
+        }
+
+        .item-list {
+          margin-bottom: 20px;
+        }
+
+        .item-list h3 {
+          font-size: 20px;
+          color: #333;
+          margin-bottom: 10px;
+        }
+
+        .item-list ul {
+          list-style-type: disc;
+          padding-left: 20px;
+        }
+
+        .item-list li {
+          font-size: 16px;
+          color: #666;
+          line-height: 1.5;
+        }
+
+        .section-name {
+          font-size: 16px;
+          color: #333;
+          margin-bottom: 10px;
+        }
 </style>
 
 <body>
     <!--Top Bar-->
-    <div class="topbar">
-        <div class="model_name">{{ model_name }}</div>
-        <div><a href="./Inference.html">Inference</a></div>
-        <div><a href="./Training.html">Training</a></div>
-        <div><a href="./PreProcessing.html">Processing</a></div>
+    <div class="navbar">
+        <div class="navbar-container">
+        <div class="navbar-title">{{ model_name }}</div>
+      </div>
+    <div class="navbar-sections">
+        <div class="navbar-section"><a href="./Inference.html">Inference</a></div>
+        <div class="navbar-section"><a href="./Training.html">Training</a></div>
+        <div class="navbar-section"><a href="./PreProcessing.html">Processing</a></div>
+      </div>
     </div>
     <!--Sidebar-->
+    <div class="container">
+    <div class="sidebar-sections">
     <div class="sidebar">
-        <div><a href="#description">Description</a></div>
-        <div><a href="#hyperparameter">Hyperparameters</a></div>
+        <div class="sidebar-section"><a href="#description"><div class="sidebar-text">Summary</div></a></div>
+        <div class="sidebar-section"><a href="#trace"><div class="sidebar-text">Functions Executed</div></a></div>
+        <div class="sidebar-section"><a href="#classes"><div class="sidebar-text">Tracked Classes</div></a></div>
+        <div class="sidebar-section"><a href="#hyperparameter"><div class="sidebar-text">Function Hyperparameters</div></a></div>
     </div>
+        </div>
     <!--Body-->
     <div class="content">
-        <div id="description">
-        <h2>Component Descriptions</h2>
-        {% for description in descriptions %}
-        <h3>{{ description.component_name }}</h3>
-        <p>
-            {{ description.component_description }}
-        </p>
-        {% endfor %}
+        <div id="description" class="summary">
+            <h2>Summary</h2>
+            <p>{{ description }}</p>
         </div>
-        <div id="hyperparameter">
-            <h2>Hyperparameters</h2>
+        <div id="trace" class="item-list">
+            <h2>Functions Executed</h2>
+            <ul>
+            {% for graph_element in graph %}
+                <li>{{ graph_element }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+        <div id="classes" class="section-name">
+        <h2>Class Descriptions</h2>
+        {% for class_description in classes %}
+        <h3>{{ class_description.class_name }}</h3>
+            <div class="table-container">
             <table>
+                <colgroup>
+                    <col style="width: 10%;">
+                    <col style="width: 20%;">
+                    <col style="width: 70%;">
+                </colgroup>
                 <tr>
-                    <th>Hyperparameter Location</th>
-                    <th>Hyperparameter Value</th>
+                    <th>Name</th>
+                    <th>Value</th>
+                    <th>Description</th>
                 </tr>
-                {% for parameter in parameters %}
+                {% for parameter in class_description.parameters %}
                 <tr>
                     <td>{{ parameter.name }}</td>
                     <td>{{ parameter.value }}</td>
+                    <td>{{ parameter.reasoning }}</td>
                 </tr>
                 {% endfor %}
             </table>
+                </div>
+        {% endfor %}
+        </div>
+        <div id="hyperparameter">
+            <h2>Function Parameters</h2>
+            {% for function_description in functions %}
+            <div class="section-name">
+            <h3> {{ function_description.function_name }}</h3>
+            <div class="table-container">
+            <table>
+                <colgroup>
+                    <col style="width: 10%;">
+                    <col style="width: 20%;">
+                    <col style="width: 70%;">
+                </colgroup>
+                <tr>
+                    <th>Name</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+                {% for function_parameter in function_description.parameters %}
+                <tr>
+                    <td>{{ function_parameter.name }}</td>
+                    <td>{{ function_parameter.value }}</td>
+                    <td>{{ function_parameter.reasoning }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+                </div>
+                </div>
+            {% endfor %}
         </div>
     </div>
+        </div>
 </body>
 </html>
