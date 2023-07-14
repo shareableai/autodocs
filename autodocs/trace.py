@@ -6,7 +6,7 @@ import pathlib
 import uuid
 from dataclasses import dataclass
 
-from observer.tracking_type import TrackingType
+from sentiml.tracking_type import TrackingType
 
 from autodocs.hyperparameters import function_hyperparameters
 from autodocs.prompts.filter_description.run import FilterQA
@@ -120,6 +120,7 @@ class Trace:
                 )
                 hyperparameters = function_hyperparameters(fn_desc)
                 parameter_summary = FnSummariserQA()(fn_desc)
+                logging.info(f"Parameter Summary: {parameter_summary}")
                 for param in hyperparameters.keys():
                     parameter_description[param] = FilterQA()(
                         parameter_summary,

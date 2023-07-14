@@ -44,7 +44,7 @@ class FnSummariserQA:
     def __call__(
         self, function: FunctionDescription
     ) -> str:
-        split_arguments = self._split_arguments(function.source)
+        split_arguments = self._split_arguments(f"{function.caller_docs}\n{function.source}")
         LOGGER.info(
             "Summarising Function %s using %s requests.",
             function.name,

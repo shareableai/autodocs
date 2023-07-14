@@ -67,6 +67,7 @@ class FunctionDescription:
     signature: Optional[str]
     root_dir: pathlib.Path
     caller_name: Optional[str]
+    caller_docs: Optional[str]
     tracked_argument_ids: dict[str, UUID]
 
     def __hash__(self) -> int:
@@ -83,6 +84,7 @@ class FunctionDescription:
                 source: str = function_info.get("source", "")
                 docs: str = function_info.get("caller_docs", "")
                 caller_name: str = function_info.get("caller_name", "")
+                caller_docs: str = function_info.get("caller_docs", "")
                 signature: Optional[str] = function_info.get("signature", None)
                 tracked_argument_ids: dict[str, uuid.UUID] = {
                     k: uuid.UUID(v)
@@ -98,6 +100,7 @@ class FunctionDescription:
                     signature=signature,
                     root_dir=directory,
                     caller_name=caller_name,
+                    caller_docs=caller_docs,
                     tracked_argument_ids=tracked_argument_ids,
                 )
         except FileNotFoundError:

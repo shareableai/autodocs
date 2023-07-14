@@ -32,14 +32,12 @@ We have provided an existing summary up to a certain point.
 Existing Summary:
 {existing_answer}
 
-We have the opportunity to refine the existing summary (only if needed) with some more context below. 
+Given the provided context, add and refine the previous answer. If the context doesn't change the answer, 
+return the existing answer as it stands.
+If you refine the answer, return the refined answer directly.
 
 Context:
 {text} 
-
-Given the new context, refine the original description. 
-If the context isn't useful, return the existing description.
-If no refinements are necessary, return the existing description.
 
 Summary:
 """
