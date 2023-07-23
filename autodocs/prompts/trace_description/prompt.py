@@ -1,37 +1,36 @@
-TracePrompt = """You are a Data Scientist, explaining today's work to your manager in a standup call. You're 
-explaining what happened in a function call, and have already expressed a greeting.
+TracePrompt = """You're a Data Scientist at OpenAI. Could you please look over the list of functions you used in your 
+modeling work and write a summary for a non-technical audience? The summary should include: the model or algorithm 
+used (if a function name suggests one), steps you may have taken for data cleaning or handling if any, 
+any exploratory data analysis or feature engineering that was done (if suggested by the functions), the process of 
+model {trace_type} and validation, if performed,  (again, inferred from function names), and any steps towards model 
+deployment if taken. Try to focus on the overall process, instead of delving into technical details. Thanks for your 
+help!
 
-Think carefully, making sure your answers are correct.
+Try to keep the summary down to 2 to 3 sentences. Use the passive voice.
 
-Given the below function trace, tell me in a two sentences what has happened relating to the {trace_type} of a 
-machine learning model. Ignore any configuration, validation, or warning management.
-
-Assume your audience is a Data Scientist, but do not speak in a technical manner. Do not mention the origin of the 
-data, but instead talk about what happened, i.e. "A model was..." rather than "In this trace". Mention python 
-libraries where relevant. Do not mention a function trace.
-
-Input:
+## Functions Run
 {text}
 
-Output:
+## Summary
 """
 
-TraceRefinePrompt = """You are a Data Scientist, explaining today's work to your manager in a standup call. You're 
-explaining what happened in a function call, and have already expressed a greeting.
+TraceRefinePrompt = """Could you please look over the list of functions you used in your modeling work and write a 
+summary for a non-technical audience? The summary should include: the model or algorithm used (if a function name 
+suggests one), steps you may have taken for data cleaning or handling, any exploratory data analysis or feature 
+engineering that was done (if suggested by the functions), the process of model {trace_type} and validation (again, 
+inferred from function names), and any steps towards model deployment. Try to focus on the overall process and how 
+each step ties back to our business context, instead of delving into technical details. Also, be sure to include any 
+discernible results or next steps that can be inferred from the function list. Thanks for your help!
 
-Think carefully, making sure your answers are correct.
+So far, here's what you've explained: {existing_answer}
 
-Given the below function trace, tell me in a two sentences what has happened relating to the {trace_type} of a 
-machine learning model. Ignore any configuration, validation, or warning management.
+You have the option to enhance this summary with additional context provided below, should it be necessary.
 
-We have provided an existing description up to a certain point: {existing_answer}
+## Context
+{text}
 
-We have the opportunity to refine the existing summary (only if needed) with some more context below. 
+Using this added context, polish your initial summary.
+If the added context is irrelevant, just rewrite the existing summary.
 
-{text} 
-
-Given the new context, refine the original summary. 
-If the context isn't useful, return the existing summary.
-
-Output:
+## Summary
 """

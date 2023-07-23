@@ -8,9 +8,7 @@ from dataclasses import dataclass
 
 from sentiml.tracking_type import TrackingType
 
-from autodocs.hyperparameters import function_hyperparameters
-from autodocs.prompts.filter_description.run import FilterQA
-from autodocs.prompts.function_parameter_summariser.run import FnSummariserQA
+from autodocs.hyperparameters import function_hyperparameters, retrieve_parameter_descriptions
 from autodocs.prompts.trace_description.run import TraceQA
 from autodocs.prompts.trace_graph.run import TraceGraphQA
 from autodocs.utils.function_description import FunctionDescription
@@ -58,7 +56,9 @@ class Trace:
         )
         trace_path.parent.mkdir(parents=True, exist_ok=True)
         with open(trace_path, "w") as trace_path_writable:
-            trace_path_writable.write(TraceQA()("\n".join(self.trace), self.trace_type))
+            trace_path_writable.write(TraceQA()(
+                "\n".join(self.trace), self.trace_type.replace('TrackingType.', '').lower())
+            )
 
     def trace_graph(self) -> None:
         trace_path = (
@@ -69,9 +69,9 @@ class Trace:
                 / f"trace_graph.txt"
         )
         trace_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(trace_path, "w") as trace_path_writable:
+        with open(trace_path, "w", encoding='utf-8') as trace_path_writable:
             trace_path_writable.write(
-                TraceGraphQA()("\n".join(self.trace), self.trace_type)
+                TraceGraphQA()("\n".join(self.trace))
             )
 
     @staticmethod
@@ -114,20 +114,11 @@ class Trace:
                 continue
             fn_item = json.load(open(function_name, "r"))
             if len(fn_item["tracked_argument_ids"]) > 0:
-                parameter_description = {}
                 fn_desc = FunctionDescription.from_file(
                     self.root_dir, function_name.stem
                 )
                 hyperparameters = function_hyperparameters(fn_desc)
-                parameter_summary = FnSummariserQA()(fn_desc)
-                logging.info(f"Parameter Summary: {parameter_summary}")
-                for param in hyperparameters.keys():
-                    parameter_description[param] = FilterQA()(
-                        parameter_summary,
-                        f'exclusively the description of the parameter {param}',
-                        'a short sentence that keeps the original meaning of the description',
-                        ""
-                    )
+                parameter_description = retrieve_parameter_descriptions(fn_desc)
                 with open(trace_path / f"{fn_desc.name}.json", "w") as function_path:
                     tracked_ids = fn_item["tracked_argument_ids"]
                     json.dump(
@@ -135,7 +126,7 @@ class Trace:
                             "class_id": tracked_ids.get(
                                 "self", tracked_ids.get("cls", None)
                             ),
-                            "hyperparameters": hyperparameters,
+                            "hyperparameters": {name: (str(value), reasoning) for (name, (value, reasoning)) in hyperparameters.items()},
                             "descriptions": parameter_description
                         },
                         function_path,

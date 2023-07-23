@@ -7,7 +7,6 @@ from langchain.chat_models.base import BaseChatModel
 from langchain.text_splitter import TokenTextSplitter
 from openai import InvalidRequestError
 
-from autodocs.prompts.filter_description.run import FilterQA
 from autodocs.utils.model import ChatModel
 from autodocs.prompts.trace_graph.prompt import (
     TracePrompt,
@@ -21,11 +20,11 @@ class TraceGraphQA:
     def __init__(self, model: BaseChatModel = ChatModel.load_model()):
         self.model = model
         self.question_prompt = PromptTemplate(
-            template=TracePrompt, input_variables=["text", "trace_type"]
+            template=TracePrompt, input_variables=["text"]
         )
         self.refine_prompt = PromptTemplate(
             template=TraceRefinePrompt,
-            input_variables=["existing_answer", "text", "trace_type"],
+            input_variables=["existing_answer", "text"],
         )
         self.called_fn_summarise_chain = load_summarize_chain(
             self.model,
@@ -40,20 +39,14 @@ class TraceGraphQA:
         splitter = TokenTextSplitter(chunk_size=3_000, chunk_overlap=250)
         return splitter.create_documents([trace_description])
 
-    def __call__(self, trace: str, trace_type: str) -> str:
+    def __call__(self, trace: str) -> str:
         split_trace = self._split_trace(trace)
         LOGGER.info(
             "Describing Trace using %s requests.",
             len(split_trace),
         )
         try:
-            data_input = {"input_documents": split_trace, "trace_type": trace_type}
-            summaries = self.called_fn_summarise_chain(data_input)
-            return FilterQA()(
-                text_input=summaries["output_text"],
-                condition="the final indented tree graph representation from the description",
-                output_format="an indented tree graph to show hierarchy, using a tree glyph.",
-                extra_conditions=""
-            )
+            data_input = {"input_documents": split_trace}
+            return self.called_fn_summarise_chain(data_input)['output_text']
         except InvalidRequestError:
             breakpoint()

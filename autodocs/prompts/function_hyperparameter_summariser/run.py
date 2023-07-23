@@ -4,7 +4,6 @@ from typing import Any, Iterator
 from langchain import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
 from langchain.chat_models.base import BaseChatModel
-from langchain.text_splitter import TokenTextSplitter
 from openai import InvalidRequestError
 
 from autodocs.utils.model import ChatModel
@@ -13,6 +12,7 @@ from autodocs.prompts.function_hyperparameter_summariser.prompt import (
     FunctionParameterPrompt,
 )
 from autodocs.utils.function_description import FunctionDescription
+from autodocs.utils.token_splitter import gpt_token_splitter
 
 LOGGER = logging.getLogger(__name__)
 
@@ -36,14 +36,36 @@ class FnHyperparameterSummarizer:
         )
 
     def _split_arguments(self, function_source: str) -> Any:
-        splitter = TokenTextSplitter(chunk_size=3_000, chunk_overlap=250)
+        splitter = gpt_token_splitter()
         return splitter.create_documents(
             ["Function Source: " + "\n" + f"{function_source}"]
         )
 
+    @classmethod
+    def _format_output(cls, output_text: str) -> dict[str, str]:
+        parameter_dict = {}
+        if output_text == "There are no parameters.":
+            return parameter_dict
+        parameters = output_text.split('\n')
+        for parameter in parameters:
+            if len(parameter.strip()) == 0:
+                continue
+            try:
+                name_hyperparam, description = parameter.split(', ', 1)
+            except ValueError:
+                breakpoint()
+            try:
+                name, is_hyperparam = name_hyperparam.split(': ', 1)
+            except ValueError:
+                breakpoint()
+            name = name[2:]
+            if is_hyperparam == 'HYPERPARAMETER':
+                parameter_dict[name] = description
+        return parameter_dict
+
     def __call__(
         self, functions: list[FunctionDescription]
-    ) -> Iterator[tuple[FunctionDescription, str]]:
+    ) -> Iterator[tuple[FunctionDescription, dict[str, str]]]:
         for function in functions:
             split_arguments = self._split_arguments(function.source)
             LOGGER.info(
@@ -54,6 +76,6 @@ class FnHyperparameterSummarizer:
             try:
                 data_input = {"input_documents": split_arguments}
                 summaries = self.called_fn_summarise_chain(data_input)
-                yield function, summaries["output_text"]
+                yield function, self._format_output(summaries["output_text"])
             except InvalidRequestError:
                 breakpoint()

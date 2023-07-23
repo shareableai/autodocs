@@ -22,6 +22,7 @@ class Parameter:
 @dataclass
 class Parameter:
     name: str
+    associated_function: str
     value: str
     reasoning: str
 
@@ -60,6 +61,8 @@ class OutputSection:
         ).readlines()
         tracked_class_parameters: dict[str, list[Parameter]] = {}
         free_function_parameters = []
+        # Classes are shown with their hyperparameters only. We track the hyperparameters, and then
+        #   identify classes if hyperparameters exist for them.
         with open(section_path / 'classes.json') as classes_file:
             class_lookup = json.load(classes_file)
             for tracked_function_file in (section_path / "hyperparameters").glob("*.json"):
@@ -85,24 +88,27 @@ class OutputSection:
                             class_name = class_lookup.get(class_id, None)
                             class_parameters = [
                                 Parameter(
-                                    parameter_name,
-                                    class_parameter_values[parameter_name],
-                                    class_parameter_reasoning[parameter_name],
+                                    name=parameter_name,
+                                    associated_function=tracked_function_file.stem,
+                                    value=class_parameter_values[parameter_name],
+                                    reasoning=class_parameter_reasoning[parameter_name],
                                 )
                                 for parameter_name in class_parameter_values.keys()
                             ]
                             try:
-                                tracked_class_parameters[class_name] = (
-                                    tracked_class_parameters[class_name] + class_parameters
+                                tracked_class_parameters[class_name] = sorted(
+                                    tracked_class_parameters[class_name] + class_parameters,
+                                    key=lambda x: tuple([x.name, x.associated_function])
                                 )
                             except KeyError:
                                 tracked_class_parameters[class_name] = class_parameters
                         if len(floating_parameter_values) > 0:
                             floating_parameters = [
                                 Parameter(
-                                    parameter_name,
-                                    floating_parameter_values[parameter_name],
-                                    floating_parameter_reasoning[parameter_name],
+                                    name=parameter_name,
+                                    value=floating_parameter_values[parameter_name],
+                                    associated_function=tracked_function_file.stem,
+                                    reasoning=floating_parameter_reasoning[parameter_name],
                                 )
                                 for parameter_name in floating_parameter_values.keys()
                             ]
