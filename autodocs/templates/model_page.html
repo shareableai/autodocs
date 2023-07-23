@@ -266,17 +266,20 @@
             <table>
                 <colgroup>
                     <col style="width: 10%;">
-                    <col style="width: 20%;">
+                    <col style="width: 10%;">
+                    <col style="width: 10%;">
                     <col style="width: 70%;">
                 </colgroup>
                 <tr>
                     <th>Name</th>
+                    <th>Associated Function</th>
                     <th>Value</th>
                     <th>Description</th>
                 </tr>
                 {% for parameter in class_description.parameters %}
                 <tr>
                     <td>{{ parameter.name }}</td>
+                    <td>{{ parameter.associated_function }}</td>
                     <td>{{ parameter.value }}</td>
                     <td>{{ parameter.reasoning }}</td>
                 </tr>
